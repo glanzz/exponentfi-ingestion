@@ -25,10 +25,15 @@ REJECT_COLUMNS = (*INPUT_COLUMNS, "reason", "detail")
 @dataclass(frozen=True)
 class Config:
     # Parallelism is a scale lever, off by default. Below this many rows we run
-    # single-process because spinning up workers would be slower.
-    parallel_threshold: int = 50_000
+    # single-process because spinning up workers would be slower. Benchmarks
+    # show the process pool is IPC-bound (parse/classify are cheap per row), so
+    # it only helps on very large feeds; keep the threshold high and let serial
+    # handle the common case.
+    parallel_threshold: int = 2_000_000
     batch_size: int = 10_000
-    max_workers: int = 0  # 0 -> os.cpu_count() - 1, chosen at runtime
+    # 0 -> max(cpu_count()//2 - 1, 1) at runtime: half the cores minus one, to
+    # leave headroom and limit pickling contention.
+    max_workers: int = 0
 
     # Checkpoint cadence for resume. Lower = more durable, more I/O.
     checkpoint_every: int = 50_000

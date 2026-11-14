@@ -83,7 +83,11 @@ def _iter_parsed(
         for batch in _batched(rows, cfg.batch_size):
             yield _parse_batch(batch)
         return
-    workers = cfg.max_workers or max((os.cpu_count() or 2) - 1, 1)
+    # Size the pool to half the cores minus one (at least 1): leaves headroom
+    # for the main process and the OS, and keeps pickling contention down —
+    # parse/classify are cheap per row, so this stage is IPC-bound, not
+    # CPU-starved. An explicit cfg.max_workers overrides.
+    workers = cfg.max_workers or max((os.cpu_count() or 2) // 2 - 1, 1)
     with ProcessPoolExecutor(max_workers=workers) as pool:
         # map keeps batch order; order doesn't matter for correctness but keeps
         # logs intuitive. Chunk via the generator so we never hold the whole
