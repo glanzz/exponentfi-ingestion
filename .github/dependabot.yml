@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Keep GitHub Actions pinned versions current.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+
+  # Keep Python dependencies (rich, pytest, ruff) current.
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly

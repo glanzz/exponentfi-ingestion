@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs on the same ref so a quick succession of pushes
+# doesn't queue stale work.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint & format (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project (dev extras)
+        run: pip install -e ".[dev]"
+      - name: ruff check
+        run: ruff check ledger tests
+      - name: ruff format --check
+        run: ruff format --check ledger tests
+
+  test:
+    name: Test (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install project (dev extras)
+        run: pip install -e ".[dev]"
+      - name: Run tests
+        run: python -m pytest -q
+      - name: Smoke test the CLI end to end
+        run: |
+          python -m ledger data/transactions.csv -o /tmp/ledger_lines.csv --rejects /tmp/rejected_rows.csv
+          # First 15 output rows must match the golden fixture.
+          head -16 /tmp/ledger_lines.csv > /tmp/got15.csv
+          diff data/expected_first_15.csv /tmp/got15.csv
