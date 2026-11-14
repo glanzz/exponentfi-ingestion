@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling>=1.33"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ledger"
+version = "0.1.0"
+description = "Categorize a restaurant operator's transaction feed into ledger lines (EXP-412, Story 1)."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "rich>=15.0,<16",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.2,<10",
+]
+
+[project.scripts]
+ledger = "ledger.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ledger"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
