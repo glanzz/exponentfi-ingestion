@@ -199,4 +199,4 @@ classDiagram
 
 ## Future Architecture with AI fallback
 
-<img src="./images/future_architecture_with_ai_fallback.png" alt="Future Architecture with AI fallback">
+<img src="./images/future_arch.png" alt="Future Architecture with AI fallback">
