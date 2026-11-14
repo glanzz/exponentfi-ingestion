@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 import csv
+from datetime import date
+from decimal import Decimal
 
 import pytest
 
+from ledger.constants.enums import LineType
 from ledger.errors import CheckpointMismatchError, MissingColumnsError
 from ledger.io import checkpoint_store, input_fingerprint, stream_rows, write_ledger
 from ledger.io.reader import count_data_rows
 from ledger.models import Checkpoint
 from ledger.models.ledger_line import LedgerLine
-from ledger.constants.enums import LineType
-from datetime import date
-from decimal import Decimal
 
 
 def _write(path, text):

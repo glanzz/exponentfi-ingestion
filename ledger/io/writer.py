@@ -13,7 +13,7 @@ import csv
 import os
 import re
 import tempfile
-from typing import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 
 from ..config import OUTPUT_COLUMNS, REJECT_COLUMNS
 from ..models import LedgerLine
@@ -52,10 +52,7 @@ def _atomic_write_csv(path: str, header: Sequence[str], rows: Iterable[dict]) ->
             writer = csv.DictWriter(f, fieldnames=list(header), extrasaction="ignore")
             writer.writeheader()
             for row in rows:
-                safe = {
-                    k: sanitize_cell(v) if isinstance(v, str) else v
-                    for k, v in row.items()
-                }
+                safe = {k: sanitize_cell(v) if isinstance(v, str) else v for k, v in row.items()}
                 writer.writerow(safe)
                 count += 1
             f.flush()
@@ -80,10 +77,8 @@ def write_ledger(path: str, lines: Iterable[LedgerLine]) -> int:
     by_id: dict[str, LedgerLine] = {}
     for line in lines:
         by_id[line.transaction_id] = line
-    ordered = sorted(by_id.values(), key=lambda l: l.sort_key())
-    return _atomic_write_csv(
-        path, OUTPUT_COLUMNS, (l.as_output_row() for l in ordered)
-    )
+    ordered = sorted(by_id.values(), key=lambda line: line.sort_key())
+    return _atomic_write_csv(path, OUTPUT_COLUMNS, (line.as_output_row() for line in ordered))
 
 
 def write_rejects(path: str, reject_rows: Iterable[dict]) -> int:

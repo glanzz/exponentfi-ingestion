@@ -10,7 +10,7 @@ so it lands in rejected_rows.csv rather than disappearing.
 
 from __future__ import annotations
 
-from typing import Callable, Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 
 from ..errors import DuplicateInBatchError
 from ..models import Transaction

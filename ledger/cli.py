@@ -45,9 +45,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="resume a prior interrupted run against the same input",
     )
-    p.add_argument(
-        "-v", "--verbose", action="store_true", help="debug-level logging"
-    )
+    p.add_argument("-v", "--verbose", action="store_true", help="debug-level logging")
     return p
 
 
@@ -96,9 +94,7 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     if stats.rows_rejected:
-        log.warning(
-            "%d row(s) rejected; see %s", stats.rows_rejected, rejects_path
-        )
+        log.warning("%d row(s) rejected; see %s", stats.rows_rejected, rejects_path)
         return EXIT_REJECTS
     return EXIT_OK
 

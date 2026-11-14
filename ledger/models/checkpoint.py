@@ -21,7 +21,7 @@ class Checkpoint:
         return asdict(self)
 
     @classmethod
-    def from_json(cls, d: dict) -> "Checkpoint":
+    def from_json(cls, d: dict) -> Checkpoint:
         return cls(
             input_fingerprint=d["input_fingerprint"],
             source_line=int(d["source_line"]),

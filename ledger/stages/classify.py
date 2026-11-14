@@ -30,9 +30,7 @@ _ZERO = Decimal("0")
 
 
 def _has_transfer_signal(txn: Transaction) -> bool:
-    return bool(
-        TRANSFER_MEMO_RE.search(txn.memo) or TRANSFER_MERCHANT_RE.search(txn.merchant)
-    )
+    return bool(TRANSFER_MEMO_RE.search(txn.memo) or TRANSFER_MERCHANT_RE.search(txn.merchant))
 
 
 def _is_payout_merchant(txn: Transaction) -> bool:

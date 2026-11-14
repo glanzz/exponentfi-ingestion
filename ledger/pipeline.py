@@ -16,9 +16,9 @@ from __future__ import annotations
 import logging
 import os
 import time
+from collections.abc import Iterable, Iterator
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field
-from typing import Iterable, Iterator
 
 from .config import DEFAULT_CONFIG, Config
 from .errors import LedgerError
@@ -88,8 +88,7 @@ def _iter_parsed(
         # map keeps batch order; order doesn't matter for correctness but keeps
         # logs intuitive. Chunk via the generator so we never hold the whole
         # input in memory.
-        for result in pool.map(_parse_batch, _batched(rows, cfg.batch_size)):
-            yield result
+        yield from pool.map(_parse_batch, _batched(rows, cfg.batch_size))
 
 
 def run(
@@ -142,9 +141,7 @@ def run(
         stats.reject_reasons[reason] = stats.reject_reasons.get(reason, 0) + 1
         stats.rows_rejected += 1
 
-    deduper = Deduper(
-        on_reject=lambda e: record_reject(e.as_reject_row())
-    )
+    deduper = Deduper(on_reject=lambda e: record_reject(e.as_reject_row()))
 
     # Stage 1+2: read -> parse -> feed dedupe. Checkpoint periodically so a
     # crash leaves a durable marker (and the fingerprint) for --resume.
@@ -175,9 +172,7 @@ def run(
     for txn in deduper.winners():
         line = classify(txn)
         lines.append(line)
-        stats.type_counts[line.type.value] = (
-            stats.type_counts.get(line.type.value, 0) + 1
-        )
+        stats.type_counts[line.type.value] = stats.type_counts.get(line.type.value, 0) + 1
         if line.needs_review:
             stats.review_count += 1
 

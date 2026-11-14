@@ -11,7 +11,6 @@ deterministic and testable.
 from __future__ import annotations
 
 import logging
-from typing import Iterable
 
 try:  # pragma: no cover - exercised implicitly
     from rich.console import Console
@@ -35,15 +34,11 @@ def setup_logging(level: int = logging.INFO) -> logging.Logger:
     logger.handlers.clear()
     logger.propagate = False
     if _RICH:
-        handler = RichHandler(
-            console=_console, rich_tracebacks=True, show_path=False, markup=False
-        )
+        handler = RichHandler(console=_console, rich_tracebacks=True, show_path=False, markup=False)
         handler.setFormatter(logging.Formatter("%(message)s", datefmt="[%X]"))
     else:
         handler = logging.StreamHandler()
-        handler.setFormatter(
-            logging.Formatter("%(asctime)s %(levelname)s %(message)s")
-        )
+        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
     logger.addHandler(handler)
     return logger
 

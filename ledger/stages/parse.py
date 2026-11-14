@@ -76,7 +76,7 @@ class RowParser:
                 batch=row.sync_batch,
                 detail=f"sync_batch is not an integer: {text!r}",
                 raw=row.as_dict(),
-            )
+            ) from None
 
     def _parse_date(self, row: RawRow) -> Date:
         text = row.date.strip()
@@ -88,7 +88,7 @@ class RowParser:
                 batch=row.sync_batch,
                 detail=f"date not YYYY-MM-DD: {text!r}",
                 raw=row.as_dict(),
-            )
+            ) from None
 
     def _parse_account(self, row: RawRow) -> Account:
         text = row.account.strip().lower()
@@ -124,7 +124,7 @@ class RowParser:
                 batch=row.sync_batch,
                 detail=f"amount is not a number: {raw!r}",
                 raw=row.as_dict(),
-            )
+            ) from None
         # Decimal() accepts NaN / Infinity. Those are not money: reject the row
         # rather than let a non-finite value into the ledger (NaN also poisons
         # the amount < 0 comparisons the classifier relies on). Also bound the

@@ -6,8 +6,8 @@ original values intact.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Mapping
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,11 +23,15 @@ class RawRow:
     source_line: int = 0
 
     @classmethod
-    def from_mapping(cls, m: Mapping[str, str], source_line: int = 0) -> "RawRow":
+    def from_mapping(cls, m: Mapping[str, str], source_line: int = 0) -> RawRow:
         """Build from a csv.DictReader row. Missing keys become empty strings so
         the parse stage (not this constructor) owns the 'missing field' decision
         with full context."""
-        get = lambda k: (m.get(k) or "").strip() if m.get(k) is not None else ""
+
+        def get(k: str) -> str:
+            v = m.get(k)
+            return v.strip() if v is not None else ""
+
         return cls(
             id=get("id"),
             sync_batch=get("sync_batch"),

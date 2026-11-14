@@ -42,7 +42,6 @@ def test_dash_text_that_is_not_a_number_is_prefixed():
 
 def test_end_to_end_malicious_merchant_is_escaped(tmp_path):
     import csv
-
     from datetime import date
     from decimal import Decimal
 

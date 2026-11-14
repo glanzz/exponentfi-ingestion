@@ -40,7 +40,7 @@ def load(path: str) -> Checkpoint | None:
     if not os.path.exists(path):
         return None
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return Checkpoint.from_json(json.load(f))
     except (json.JSONDecodeError, KeyError, ValueError):
         # A corrupt checkpoint is treated as no checkpoint: start clean rather

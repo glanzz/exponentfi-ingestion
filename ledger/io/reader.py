@@ -6,7 +6,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import os
-from typing import Iterator
+from collections.abc import Iterator
 
 from ..config import INPUT_COLUMNS
 from ..errors import MissingColumnsError
@@ -41,12 +41,12 @@ def stream_rows(path: str) -> Iterator[RawRow]:
     Resume re-reads from the top (the dedupe stage needs every id, and the
     id-keyed atomic write makes re-processing idempotent), so there is no
     byte-seek here — which also sidesteps csv.reader disabling f.tell()."""
-    with open(path, "r", newline="", encoding="utf-8") as f:
+    with open(path, newline="", encoding="utf-8") as f:
         reader = csv.reader(f)
         try:
             header = next(reader)
         except StopIteration:
-            raise MissingColumnsError(detail=f"{path}: file is empty")
+            raise MissingColumnsError(detail=f"{path}: file is empty") from None
         _validate_header(header, path)
         header = [c.strip() for c in header]
 
@@ -57,12 +57,14 @@ def stream_rows(path: str) -> Iterator[RawRow]:
                 continue  # skip blank lines
             # Zip against the known header; short/long rows are tolerated and
             # surfaced later by the parser's missing-field check.
-            mapping = dict(zip(header, fields))
+            # Lenient zip: short/long rows are tolerated here and surfaced by
+            # the parser's missing-field check, so strict=False is intentional.
+            mapping = dict(zip(header, fields, strict=False))
             yield RawRow.from_mapping(mapping, source_line=line_no)
 
 
 def count_data_rows(path: str) -> int:
     """Total data rows, for sizing decisions (parallelism, dedupe strategy).
     One cheap streaming pass; no parsing."""
-    with open(path, "r", newline="", encoding="utf-8") as f:
+    with open(path, newline="", encoding="utf-8") as f:
         return max(sum(1 for _ in f) - 1, 0)

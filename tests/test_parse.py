@@ -76,9 +76,9 @@ def test_batch_parsed_numerically(parser):
     # The classic trap: "10" must be greater than "9".
     assert parser.parse(row(sync_batch="10")).sync_batch == 10
     assert parser.parse(row(sync_batch="9")).sync_batch == 9
-    assert parser.parse(row(sync_batch="10")).sync_batch > parser.parse(
-        row(sync_batch="9")
-    ).sync_batch
+    assert (
+        parser.parse(row(sync_batch="10")).sync_batch > parser.parse(row(sync_batch="9")).sync_batch
+    )
 
 
 @pytest.mark.parametrize(
