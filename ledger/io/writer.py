@@ -11,15 +11,38 @@ from __future__ import annotations
 
 import csv
 import os
+import re
 import tempfile
 from typing import Iterable, Sequence
 
 from ..config import OUTPUT_COLUMNS, REJECT_COLUMNS
 from ..models import LedgerLine
 
+# Characters that make a spreadsheet treat a cell as a formula when the leading
+# char is one of these. The output is meant to be opened by a human bookkeeper,
+# and both feed-controlled ids and the rejects echo of raw rows flow into CSVs,
+# so neutralize them. See OWASP "CSV Injection".
+_FORMULA_LEADS = ("=", "+", "-", "@", "\t", "\r")
+# A plain number (our own amounts) may legitimately start with '-' / '+'; those
+# are not formulas, so leave them untouched to avoid corrupting the ledger.
+_NUMERIC_RE = re.compile(r"^[+-]?(\d+(\.\d*)?|\.\d+)$")
+
+
+def sanitize_cell(value: str) -> str:
+    """Neutralize CSV/formula injection: prefix a single quote to any string
+    that would be interpreted as a formula, except plain numeric values."""
+    if not value:
+        return value
+    if value[0] in _FORMULA_LEADS and not _NUMERIC_RE.match(value):
+        return "'" + value
+    return value
+
 
 def _atomic_write_csv(path: str, header: Sequence[str], rows: Iterable[dict]) -> int:
-    """Write rows to `path` atomically. Returns the row count."""
+    """Write rows to `path` atomically. Returns the row count.
+
+    Every string cell is run through sanitize_cell so feed-controlled text can't
+    smuggle a spreadsheet formula into the output."""
     directory = os.path.dirname(os.path.abspath(path)) or "."
     os.makedirs(directory, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=directory, suffix=".tmp")
@@ -29,7 +52,11 @@ def _atomic_write_csv(path: str, header: Sequence[str], rows: Iterable[dict]) ->
             writer = csv.DictWriter(f, fieldnames=list(header), extrasaction="ignore")
             writer.writeheader()
             for row in rows:
-                writer.writerow(row)
+                safe = {
+                    k: sanitize_cell(v) if isinstance(v, str) else v
+                    for k, v in row.items()
+                }
+                writer.writerow(safe)
                 count += 1
             f.flush()
             os.fsync(f.fileno())
