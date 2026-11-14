@@ -107,6 +107,19 @@ def test_malformed_amount_rejected(parser, bad):
         parser.parse(row(amount=bad))
 
 
+@pytest.mark.parametrize("bad", ["NaN", "nan", "Infinity", "inf", "-inf", "+Inf"])
+def test_non_finite_amount_rejected(parser, bad):
+    # Decimal() happily parses these; they must NOT enter the ledger (NaN also
+    # breaks amount < 0 comparisons downstream).
+    with pytest.raises(MalformedAmountError):
+        parser.parse(row(amount=bad))
+
+
+def test_absurd_magnitude_rejected(parser):
+    with pytest.raises(MalformedAmountError):
+        parser.parse(row(amount="1E999999"))
+
+
 def test_exact_decimal_math(parser):
     a = parser.parse(row(amount="0.10")).amount
     b = parser.parse(row(amount="0.20")).amount

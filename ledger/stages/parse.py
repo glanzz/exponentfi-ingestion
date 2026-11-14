@@ -125,6 +125,17 @@ class RowParser:
                 detail=f"amount is not a number: {raw!r}",
                 raw=row.as_dict(),
             )
+        # Decimal() accepts NaN / Infinity. Those are not money: reject the row
+        # rather than let a non-finite value into the ledger (NaN also poisons
+        # the amount < 0 comparisons the classifier relies on). Also bound the
+        # magnitude so an absurd exponent can't slip through as "finite".
+        if not value.is_finite() or abs(value.adjusted()) > 18:
+            raise MalformedAmountError(
+                row_id=row.id,
+                batch=row.sync_batch,
+                detail=f"amount is not a finite, in-range number: {raw!r}",
+                raw=row.as_dict(),
+            )
         if negative:
             value = -value
         # Normalize -0.00 to 0.00 at the value level too.
